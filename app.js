@@ -351,6 +351,10 @@ function pick() {
     L = W.filter((w) => P[w.id] && P[w.id][0] === 0 && P[w.id][3] > 0);
   else if (S.scope === "range")
     L = W.filter((w) => w.s >= S.from && w.s <= S.to);
+  else if (S.scope.startsWith("session:")) {
+    const session = +S.scope.slice(8);
+    L = W.filter((w) => (+w.s || 1) === session);
+  }
   else if (S.scope === "new") L = W.filter((w) => !P[w.id]);
   if (S.cat !== "all") L = L.filter((w) => w.c === S.cat);
   return L;
@@ -361,8 +365,21 @@ function home() {
     en = Object.values(P);
   const due = en.filter((e) => e[1] <= t).length,
     solid = en.filter((e) => e[0] >= 3).length;
-  const list = pick();
   const sessOpts = [...new Set(W.map((w) => w.s))].sort((a, b) => a - b);
+  if (
+    S.scope.startsWith("session:") &&
+    !sessOpts.includes(+S.scope.slice(8))
+  )
+    S.scope = "new";
+  const list = pick();
+  const sessionScopeOpts = !isMimi
+    ? sessOpts
+        .map(
+          (n) =>
+            `<option value="session:${n}"${S.scope === `session:${n}` ? " selected" : ""}>${esc(sLabel(n))} (${W.filter((w) => (+w.s || 1) === n).length})</option>`,
+        )
+        .join("")
+    : "";
   const so = (v) =>
     sessOpts
       .map(
@@ -388,7 +405,7 @@ function home() {
    ${isMimi && todayNo >= 1 && todayNo <= maxS ? `<option value="today"${S.scope === "today" ? " selected" : ""}>${todayLbl}</option>` : ""}
    <option value="due"${S.scope === "due" ? " selected" : ""}>Từ đến hạn ôn (${due})</option>
    <option value="wrong"${S.scope === "wrong" ? " selected" : ""}>Từ hay sai</option>
-   ${isMimi ? `<option value="range"${S.scope === "range" ? " selected" : ""}>Chọn buổi</option>` : ""}<option value="new"${S.scope === "new" ? " selected" : ""}>Từ chưa học (${W.filter((w) => !P[w.id]).length})</option>
+   ${isMimi ? `<option value="range"${S.scope === "range" ? " selected" : ""}>Chọn buổi</option>` : sessionScopeOpts}<option value="new"${S.scope === "new" ? " selected" : ""}>Từ chưa học (${W.filter((w) => !P[w.id]).length})</option>
    <option value="all"${S.scope === "all" ? " selected" : ""}>Tất cả ${W.length} từ</option></select>
   <span id="rng" class="row${S.scope === "range" ? "" : " hidden"}"><select id="from">${so(S.from)}</select><span>đến</span><select id="to">${so(S.to)}</select></span>
   <select id="cat"><option value="all">Mọi loại từ</option>${[...new Set(W.map((w) => w.c))].map((c) => `<option${S.cat === c ? " selected" : ""}>${esc(c)}</option>`).join("")}</select></div>
