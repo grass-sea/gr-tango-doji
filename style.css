@@ -1,3 +1,6 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&family=Noto+Serif+JP:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap");
+/* Phông: chữ Latin/Việt đứng TRƯỚC, kanji/kana đứng SAU, để dấu tiếng Việt luôn lấy từ phông có đủ glyph */
+:root{--serif:"Noto Serif","Source Serif 4",Georgia,"Times New Roman","Noto Serif JP","Hiragino Mincho ProN","Yu Mincho",serif;--sans:system-ui,"Segoe UI",Roboto,"Noto Sans","Helvetica Neue",Arial,"Noto Sans JP","Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif;--mincho:"Noto Serif JP","Yu Mincho","Hiragino Mincho ProN",serif}
 :root{--bg:#f4efe4;--sf:#fffcf5;--tx:#1c2333;--mu:#6a6455;--ln:#ddd2bd;--ac:#1f3f73;--acx:#fff;--ok:#2e7a4e;--okb:#e5f0df;--bad:#c4302b;--badb:#fbe4de;--chip:#eadfc9;--pat:rgba(31,63,115,.09);--shu:#c8372d;--sk:#f7dde1;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111722;--sf:#192131;--tx:#ece6d6;--mu:#a9a38f;--ln:#2e3749;--ac:#f2a9b6;--acx:#2a1219;--ok:#8fd19e;--okb:#14291d;--bad:#ff8f80;--badb:#34191a;--chip:#232d40;--pat:rgba(242,169,182,.07);--shu:#ff7b6b;--sk:#3a2530}}
 :root[data-theme="dark"]{
@@ -28,16 +31,16 @@ body{
     background-size:64px 32px;
     background-position:0 0,32px 16px;
     color:var(--tx);
-    font:15px/1.55 system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Hiragino Sans","Yu Gothic UI","Meiryo","Noto Sans JP",sans-serif
+    font:15px/1.55 var(--sans)
 }
 
 main{max-width:760px;margin:0 auto;padding:28px 18px 60px}
-h1{font:700 26px/1.3 Georgia,"Times New Roman","Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;margin:0 0 6px;color:var(--ac)}h2{font-size:15px;margin:0 0 10px}
+h1{font:700 26px/1.3 var(--serif);margin:0 0 6px;color:var(--ac)}h2{font-size:15px;margin:0 0 10px}
 .mu{color:var(--mu)}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .card{background:var(--sf);border:1px solid var(--ln);border-top:3px solid var(--ac);border-radius:4px;padding:16px 18px;margin:14px 0}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .stat{background:var(--sf);border:1px solid var(--ln);border-radius:10px;padding:12px 14px}
-.stat b{display:block;font:700 28px/1.3 Georgia,"Times New Roman","Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;color:var(--ac)}.stat:nth-child(3) b{color:var(--shu)}
+.stat b{display:block;font:700 28px/1.3 var(--serif);color:var(--ac)}.stat:nth-child(3) b{color:var(--shu)}
 label.opt{display:flex;gap:8px;align-items:flex-start;padding:8px 0;cursor:pointer}
 select,input[type=number],textarea{font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--ln);border-radius:8px;padding:7px 9px}
 select:focus-visible,input:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
@@ -46,7 +49,7 @@ button.p{background:var(--ac);color:var(--acx);border-color:var(--ac);font-weigh
 button:disabled{opacity:.45;cursor:not-allowed}
 .chip{display:inline-block;background:var(--chip);border-radius:6px;padding:2px 8px;font-size:12.5px;margin:0 6px 6px 0}
 .bar{height:6px;background:var(--chip);border-radius:3px;overflow:hidden;margin:6px 0 14px}.bar i{display:block;height:100%;background:var(--shu)}
-.big{font-family:Georgia,"Times New Roman","Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;font-size:56px;line-height:1.2;margin:10px 0 6px;word-break:break-word}
+.big{font-family:var(--serif);font-size:56px;line-height:1.2;margin:10px 0 6px;word-break:break-word}
 .big.vi{font-size:28px}
 #ans{width:100%;font-size:24px;padding:12px 14px;margin:12px 0 8px;border-radius:10px}
 .shake{animation:sh .25s}@keyframes sh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
@@ -58,20 +61,20 @@ button:disabled{opacity:.45;cursor:not-allowed}
 table{border-collapse:collapse;width:100%}td{padding:6px 8px;border-top:1px solid var(--ln);vertical-align:top}
 .hidden{display:none}textarea{width:100%;height:90px;font-size:12px}
 body::before{content:"";display:block;height:6px;background:linear-gradient(90deg,var(--ac) 0 72%,var(--shu) 72% 100%)}
-.hanko{display:inline-block;background:var(--shu);color:#fff;font:700 15px/1 serif;padding:7px 6px;border-radius:3px;margin-right:8px;vertical-align:3px;letter-spacing:0}
+.hanko{display:inline-block;background:var(--shu);color:#fff;font:700 15px/1 var(--mincho);padding:7px 6px;border-radius:3px;margin-right:8px;vertical-align:3px;letter-spacing:0}
 .chip{border:1px solid var(--ln)}.res.ok{border-left:4px solid var(--ok)}.res.no{border-left:4px solid var(--shu)}
 .rh{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:17px}
 .ic{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--ok);color:var(--sf);font-size:14px;font-weight:700}.res.no .ic{background:var(--shu)}
 .mine{text-decoration:line-through;background:var(--sf);border-radius:6px;padding:1px 10px;color:var(--bad)}
 .res .det{background:var(--sf);color:var(--tx);border-radius:8px;padding:14px 16px;margin-top:10px}
 .ans{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
-.res .det .k{font:700 36px/1.2 Georgia,'Times New Roman','Hiragino Mincho ProN','Yu Mincho','Noto Serif JP',serif}
+.res .det .k{font:700 36px/1.2 var(--serif)}
 .rd{font-size:18px;color:var(--mu)}
 .det small{display:block;font-size:11px;letter-spacing:.08em;color:var(--mu);margin-bottom:3px;font-weight:700}
 .mean{margin-top:12px;padding:10px 14px;border-left:4px solid var(--ac);background:var(--chip);border-radius:0 8px 8px 0;font-size:21px;font-weight:700;line-height:1.35}
 .hv{margin-top:14px}.tiles{display:flex;gap:8px;flex-wrap:wrap}
 .tl{display:flex;flex-direction:column;align-items:center;border:1px solid var(--ln);border-radius:8px;padding:6px 14px;min-width:68px}
-.tl b{font:700 26px/1.25 Georgia,'Hiragino Mincho ProN','Yu Mincho','Noto Serif JP',serif}
+.tl b{font:700 26px/1.25 var(--serif)}
 .tl i{font-style:normal;font-size:13px;font-weight:700;color:var(--shu);letter-spacing:.05em}
 .hvt{font-size:16px;font-weight:700;color:var(--shu);letter-spacing:.05em}
 .ex{margin-top:14px;padding-top:10px;border-top:1px dashed var(--ln)}
@@ -82,3 +85,92 @@ body::before{content:"";display:block;height:6px;background:linear-gradient(90de
 
 /* Ô nhập: không cho kéo giãn, nội dung dài thì cuộn */
 textarea{resize:none;overflow:auto}
+
+/* TANGRO: thanh tài khoản và màn hình đăng nhập */
+.topbar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;min-height:48px;margin:-10px 0 18px;position:relative;z-index:5}
+.brand{justify-self:start}
+
+
+
+.brand{border:0;background:transparent;color:var(--ac);font:700 22px/1 var(--serif);letter-spacing:.14em;padding:8px 0}.brand:hover{color:var(--shu)}
+.account{position:relative;justify-self:end}.account-trigger{display:flex;align-items:center;gap:8px;border:1px solid var(--ln);background:var(--sf);padding:5px 9px 5px 6px;border-radius:999px;box-shadow:0 5px 16px rgba(28,35,51,.08)}
+.avatar{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--ac);color:var(--acx);font-weight:700}.account-name{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.account-caret{font-size:18px;color:var(--mu);line-height:1}
+.account-menu{position:absolute;right:0;top:calc(100% + 8px);width:220px;padding:8px;background:var(--sf);border:1px solid var(--ln);border-radius:12px;box-shadow:0 14px 30px rgba(28,35,51,.18);animation:menuIn .18s ease-out}.account-menu.hidden{display:none}.account-detail{padding:8px 10px 10px;border-bottom:1px solid var(--ln);font-weight:700}.account-detail small{display:block;color:var(--mu);font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.account-menu .logout{width:100%;margin-top:8px;background:var(--bad);border-color:var(--bad);color:#fff;font-weight:700}.account-menu .logout:hover{filter:brightness(.9)}
+@keyframes menuIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+.login-screen{min-height:calc(100vh - 74px);display:grid;place-items:center;position:relative;overflow:hidden;padding:28px 0}.login-panel{position:relative;z-index:1;width:min(100%,430px);text-align:center;background:color-mix(in srgb,var(--sf) 92%,transparent);border:1px solid var(--ln);border-top:4px solid var(--ac);border-radius:18px;padding:42px 34px 34px;box-shadow:0 22px 55px rgba(28,35,51,.14);animation:panelIn .6s cubic-bezier(.2,.8,.2,1)}.login-mark{display:grid;place-items:center;width:58px;height:58px;margin:0 auto 18px;border-radius:16px;background:var(--shu);color:#fff;font:700 28px/1 var(--serif);transform:rotate(-4deg);box-shadow:8px 8px 0 var(--chip)}.login-kicker{color:var(--mu);font-size:11px;letter-spacing:.2em;font-weight:700}.login-title{font-size:42px;letter-spacing:.12em;margin:8px 0 5px}.login-subtitle{color:var(--mu);margin:0 auto 28px}.google-login{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 15px;border-radius:10px;background:var(--ac);color:var(--acx);border-color:var(--ac);font-weight:700;box-shadow:0 8px 18px rgba(31,63,115,.2);transition:transform .18s,box-shadow .18s}.google-login:hover{transform:translateY(-2px);box-shadow:0 12px 24px rgba(31,63,115,.28)}.google-login:disabled{transform:none}.google-icon{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#fff;color:#4285f4;font-weight:800;font-family:Arial}.login-note{color:var(--mu);font-size:13px;margin:15px 0 0}.login-orbit{position:absolute;border:1px solid var(--ln);border-radius:50%;opacity:.7;animation:orbit 12s linear infinite}.orbit-a{width:420px;height:420px}.orbit-b{width:650px;height:650px;animation-direction:reverse;animation-duration:18s}.orbit-a::after,.orbit-b::after{content:"";position:absolute;width:8px;height:8px;border-radius:50%;background:var(--shu);top:12%;left:12%;box-shadow:0 0 0 6px color-mix(in srgb,var(--shu) 16%,transparent)}@keyframes orbit{to{transform:rotate(360deg)}}@keyframes panelIn{from{opacity:0;transform:translateY(18px) scale(.98)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.account-menu,.login-panel,.login-orbit{animation:none}.google-login{transition:none}}
+@media (max-width:560px){.account-name{display:none}.topbar{margin-top:-4px}.login-panel{padding:34px 22px 28px}.login-title{font-size:35px}.login-orbit{transform:scale(.72)}}
+
+/* TANGRO identity */
+.brand{letter-spacing:.12em}.brand-gr,.login-title .brand-gr{color:#2e9b63;text-shadow:0 1px 0 rgba(46,155,99,.15)}
+.brand-leaf{display:inline-block;width:12px;height:18px;margin-left:5px;vertical-align:-3px;background:linear-gradient(135deg,#68bd72,#197844);border-radius:100% 0 100% 0;transform:rotate(-28deg);box-shadow:-3px 4px 0 -2px var(--sf)}
+.avatar-image{object-fit:cover;border:1px solid var(--ln)}
+.login-mark{background:#2e9b63;font-size:22px;position:relative}.login-mark::after{content:"";position:absolute;width:14px;height:23px;right:-8px;top:-9px;background:linear-gradient(135deg,#74c77b,#197844);border-radius:100% 0 100% 0;transform:rotate(25deg)}
+.brand-logo{display:block;width:auto;height:42px;max-width:210px;object-fit:contain}
+@media (max-width:560px){.brand-logo{height:36px;max-width:170px}}
+.library-heading{margin:28px 0 24px;padding:17px 20px 15px;border-top:1px solid var(--ln);border-bottom:1px solid var(--ln);border-left:4px solid var(--shu);border-radius:12px;background:linear-gradient(105deg,var(--sf),color-mix(in srgb,var(--sf) 78%,var(--chip)));box-shadow:0 8px 20px rgba(28,35,51,.06)}
+.library-heading h1{margin:0 0 5px;font-size:25px;letter-spacing:.07em}
+@media (max-width:560px){.library-heading{margin:22px 0 18px;padding:15px 15px 13px}.library-heading h1{font-size:20px}}
+
+/* Tiêu đề thư viện tách khỏi các card nội dung */
+.library-heading{margin:36px 0 30px;padding:0 4px 19px;border:0;border-bottom:1px solid var(--ln);border-radius:0;background:transparent;box-shadow:none;position:relative}
+.library-heading::after{content:"";display:block;width:74px;height:4px;margin-top:15px;border-radius:999px;background:linear-gradient(90deg,var(--ac) 0 62%,var(--shu) 62%)}
+.library-heading h1{margin:0;color:var(--ac);font-family:var(--sans);font-size:29px;font-weight:900;letter-spacing:.08em;line-height:1.25}
+.library-heading .mu{margin-top:7px;font-size:13px}
+@media (max-width:560px){.library-heading{margin:30px 0 24px;padding:0 2px 16px}.library-heading h1{font-size:22px;letter-spacing:.06em}.library-heading::after{margin-top:12px;width:62px}}
+@media (max-width:560px){.brand-logo{max-width:120px}}
+
+
+/* ===== Nhật Bản, gọn và dễ đọc ===== */
+/* Tiếng Việt: dòng đủ cao để dấu không bị cắt, chữ đậm vừa phải */
+h1{line-height:1.4}
+.big{line-height:1.3;letter-spacing:.02em}
+.big.vi{font-size:28px;line-height:1.45;font-weight:700;letter-spacing:0}
+.mean,.hvt,.mu{line-height:1.55}
+.library-heading h1{font-weight:800;font-family:var(--sans)}
+.stat b,.tl b,.res .det .k{font-weight:700}
+
+/* Con dấu (hanko) dọc, hợp cả 1 chữ (完) lẫn 2 chữ (単語) */
+.hanko{writing-mode:vertical-rl;text-orientation:upright;font-size:14px;line-height:1;letter-spacing:0;padding:8px 5px;margin-right:10px;border-radius:4px;vertical-align:-3px;transform:rotate(-3deg);box-shadow:inset 0 0 0 2px rgba(255,255,255,.4),0 2px 0 rgba(0,0,0,.14)}
+
+/* Thẻ: viền giấy washi, bóng nhẹ */
+.card{box-shadow:0 8px 22px rgba(28,35,51,.07),inset 0 0 0 1px color-mix(in srgb,var(--sf) 60%,transparent)}
+.chip{font-family:var(--sans)}
+
+/* Ô gõ đáp án + nhãn chế độ ひらがな / カタカナ */
+.inwrap{position:relative;margin:12px 0 8px}
+#ans{margin:0;padding-right:136px;border:2px solid var(--ln);background:var(--bg);transition:border-color .15s,box-shadow .15s;font-family:var(--sans)}
+#ans:focus{outline:none;border-color:var(--ac);box-shadow:0 0 0 4px color-mix(in srgb,var(--ac) 18%,transparent)}
+#ans.kata:focus{border-color:var(--shu);box-shadow:0 0 0 4px color-mix(in srgb,var(--shu) 18%,transparent)}
+.kmode{position:absolute;right:10px;top:50%;transform:translateY(-50%);display:inline-flex;align-items:center;gap:7px;padding:5px 11px 5px 6px;border-radius:999px;border:1px solid var(--ln);background:var(--chip);color:var(--ac);font:700 12.5px/1 var(--sans);white-space:nowrap;pointer-events:none;transition:background .15s,color .15s,border-color .15s}
+.kmode b{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--ac);color:var(--acx);font:700 14px/1 var(--mincho)}
+.kmode.kata{background:var(--sk);color:var(--shu);border-color:var(--shu)}
+.kmode.kata b{background:var(--shu);color:#fff}
+@media (max-width:560px){#ans{padding-right:56px}.kmode{padding:4px;right:8px}.kmode span{display:none}}
+@media (prefers-reduced-motion:reduce){#ans,.kmode{transition:none}}
+
+
+/* ===== Thanh đầu trang: một dải giấy liền mạch ===== */
+.topbar{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:6px;min-height:60px;margin:0 0 22px;padding:6px 10px 6px 16px;background:var(--sf);border:1px solid var(--ln);border-top:3px solid var(--ac);border-radius:6px;box-shadow:0 8px 22px rgba(28,35,51,.07);position:relative;z-index:5}
+.topbar::after{content:"";position:absolute;left:0;top:-3px;width:72px;height:3px;background:var(--shu)}
+.brand{justify-self:start;padding:2px 0}
+.brand-logo{height:40px;max-width:190px}
+.exam-countdown{justify-self:center;align-self:stretch;display:flex;align-items:center;gap:11px;margin:4px 0;padding:0 22px;border-left:1px solid var(--ln);border-right:1px solid var(--ln);white-space:nowrap}
+.exam-countdown b{font:700 30px/1 var(--serif);color:var(--shu);letter-spacing:-.01em}
+.exam-countdown div{display:flex;flex-direction:column;gap:3px}
+.exam-countdown span{font-size:13.5px;font-weight:700;line-height:1.2;color:var(--tx)}
+.exam-countdown small{font-size:11.5px;line-height:1.2;color:var(--mu);letter-spacing:.04em}
+.account-trigger{border-color:transparent;background:transparent;box-shadow:none;padding:4px 8px 4px 4px;transition:background .15s,border-color .15s}
+.account-trigger:hover{background:var(--chip);border-color:var(--ln)}
+.avatar{width:34px;height:34px}
+@media (max-width:560px){
+  .topbar{grid-template-columns:auto 1fr auto;min-height:52px;padding:5px 6px 5px 10px;margin-bottom:16px}
+  .brand-logo{height:30px;max-width:104px}
+  .exam-countdown{gap:7px;padding:0 10px;margin:2px 0}
+  .exam-countdown b{font-size:24px}
+  .exam-countdown{white-space:normal;min-width:0}
+  .exam-countdown span{font-size:11.5px;line-height:1.25}
+  .exam-countdown small{display:none}
+  .account-caret{display:none}
+  .account-trigger{padding:3px}
+}

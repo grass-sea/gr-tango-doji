@@ -1,6 +1,6 @@
 // Service worker: ưu tiên mạng (thấy bản mới ngay), mất mạng thì dùng bản đã lưu.
-const V='n3vocab-v1';
-const FILES=['./','index.html','style.css','app.js','data/mimikara.js','manifest.webmanifest','icon.svg'];
+const V='n3vocab-v2';
+const FILES=['./','index.html','style.css','app.js','firebase-config.js','firebase-sync.js','data/mimikara.js','manifest.webmanifest','icon.svg'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(FILES)));self.skipWaiting()});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==V).map(x=>caches.delete(x)))));self.clients.claim()});
 self.addEventListener('fetch',e=>{
