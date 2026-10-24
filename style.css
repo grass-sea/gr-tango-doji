@@ -174,3 +174,12 @@ h1{line-height:1.4}
   .account-caret{display:none}
   .account-trigger{padding:3px}
 }
+
+/* ===== Chế độ tối: chữ trong ô nhập luôn sáng, đọc được ===== */
+:root{color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark}}
+:root[data-theme="dark"]{color-scheme:dark}
+input:not([type=checkbox]):not([type=radio]):not([type=file]),select,textarea,#ans{color:var(--tx);-webkit-text-fill-color:var(--tx);caret-color:var(--shu);background-color:var(--bg)}
+input::placeholder,textarea::placeholder{color:var(--mu);opacity:.85;-webkit-text-fill-color:var(--mu)}
+#ans:read-only{color:var(--tx);-webkit-text-fill-color:var(--tx);opacity:1}
+#ans:-webkit-autofill{-webkit-text-fill-color:var(--tx);box-shadow:0 0 0 100px var(--bg) inset}
