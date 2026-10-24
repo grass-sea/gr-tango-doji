@@ -183,3 +183,21 @@ input:not([type=checkbox]):not([type=radio]):not([type=file]),select,textarea,#a
 input::placeholder,textarea::placeholder{color:var(--mu);opacity:.85;-webkit-text-fill-color:var(--mu)}
 #ans:read-only{color:var(--tx);-webkit-text-fill-color:var(--tx);opacity:1}
 #ans:-webkit-autofill{-webkit-text-fill-color:var(--tx);box-shadow:0 0 0 100px var(--bg) inset}
+
+/* ===== Form sửa thẻ ===== */
+.ed{display:grid;gap:10px}
+.ed label{display:grid;gap:4px;font-size:12.5px;font-weight:700;color:var(--mu)}
+.ed input,.ed textarea,.ed select{font:inherit;font-weight:400;width:100%;color:var(--tx);background:var(--bg);border:1px solid var(--ln);border-radius:8px;padding:8px 10px}
+.ed textarea{height:64px;resize:vertical;font-size:14px}
+.ed .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:560px){.ed .two{grid-template-columns:1fr}.ed input,.ed select,.ed textarea{font-size:16px}}
+
+/* ===== Hộp xác nhận xoá ===== */
+button.danger{background:var(--bad);border-color:var(--bad);color:var(--sf);font-weight:700}
+.modal{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:18px;background:rgba(17,23,34,.55);animation:mfade .15s ease-out}
+.dlg{width:min(100%,380px);background:var(--sf);color:var(--tx);border:1px solid var(--ln);border-top:4px solid var(--shu);border-radius:12px;padding:20px 20px 16px;box-shadow:0 22px 55px rgba(0,0,0,.3)}
+.dlg h2{font-size:18px;margin:0 0 8px}
+.dlg p{margin:0 0 18px;color:var(--mu);line-height:1.55}
+.dlg .row{justify-content:flex-end}
+@keyframes mfade{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.modal{animation:none}}

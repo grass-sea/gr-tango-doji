@@ -367,7 +367,7 @@ function home() {
     sessOpts
       .map(
         (n) =>
-          `<option value="${n}"${n === v ? " selected" : ""}>Buổi ${n}</option>`,
+          `<option value="${n}"${n === v ? " selected" : ""}>${esc(sLabel(n))}</option>`,
       )
       .join("");
   const todayLbl = REV.has(todayNo)
@@ -375,7 +375,7 @@ function home() {
     : `Hôm nay: buổi ${todayNo}`;
   $("#app").innerHTML = `
  ${accountBar()}<button id="lib">← Thư viện</button><h1 style="margin-top:12px"><span class="hanko">単語</span>${esc(FN)} · ${W.length} từ</h1>
- <div class="row" style="margin-top:10px"><button id="cards">Xem flashcard</button>${isMimi ? "" : `<button id="addWords">Thêm thẻ mới</button><button id="removeDeck">Xoá bộ từ</button>`}</div>
+ <div class="row" id="deckBar" style="margin-top:10px"><button id="cards">Xem flashcard</button>${isMimi ? "" : `<button id="addWords">Thêm thẻ mới</button><button id="renameDeck">Đổi tên bộ</button><button id="removeDeck">Xoá bộ từ</button>`}</div>
  <div class="stats" style="margin-top:14px">
   <div class="stat"><b>${en.length}</b><span class="mu">từ đã làm / ${W.length}</span></div>
   <div class="stat"><b>${solid}</b><span class="mu">từ nhớ chắc</span></div>
@@ -428,23 +428,23 @@ ${isMimi ? "" : `<div id="imp"></div>`}`;
       imp(FID, true);
       $("#imp").scrollIntoView({ behavior: "smooth" });
     };
-    $("#removeDeck").onclick = () => {
-      if (confirm("Xoá toàn bộ bộ từ này?")) {
-        FO = FO.filter((f) => f.id !== FID);
-        sv();
-        try {
-          localStorage.removeItem(scopedKey(KEY));
-        } catch (e) {}
-        lib();
-      }
-    };
+    $("#renameDeck").onclick = renameDeck;
+    $("#removeDeck").onclick = () =>
+      confirmBox(
+        "Xoá cả bộ từ?",
+        `Bạn có chắc muốn xoá bộ “${FN}” cùng ${W.length} từ và toàn bộ tiến độ học không? Không thể hoàn tác.`,
+        "Xoá",
+        removeDeckNow,
+      );
   }
 }
 function flashcards(session = "all") {
   const sessions = [...new Set(W.map((w) => w.s || 1))].sort((a, b) => a - b);
   const list = session === "all" ? W : W.filter((w) => (w.s || 1) === +session);
+  const cardHtml = (w) =>
+    `<article class="card" data-card="${w.id}"><div class="row" style="justify-content:space-between"><span class="chip">${esc(sLabel(w.s || 1))}</span>${isMimi ? "" : `<span class="row"><button data-card-edit="${w.id}">Sửa</button><button data-card-delete="${w.id}">Xoá thẻ</button></span>`}</div><div class="big">${esc(w.k)}</div><div class="mu">${esc(w.h || "")}</div><p>${esc(w.m || "")}</p>${w.v ? `<div class="mu">Hán-Việt: ${esc(w.v)}</div>` : ""}${w.e ? `<div class="ex"><small>VÍ DỤ</small>${esc(w.e)}<br><span class="mu">${esc(w.t || "")}</span></div>` : ""}${w.p ? `<div class="mu">Mức độ: ${esc(w.p)}</div>` : ""}</article>`;
   $("#app").innerHTML =
-    `<button id="backHome">← ${esc(FN)}</button><h1 style="margin-top:12px">Flashcard · ${list.length} từ</h1><div class="row" style="margin:10px 0"><label>Buổi học <select id="cardSession"><option value="all">Tất cả</option>${sessions.map((n) => `<option value="${n}"${+session === n ? " selected" : ""}>Buổi ${n}</option>`).join("")}</select></label>${isMimi ? "" : `<button id="cardAdd">Thêm thẻ mới</button>`}</div><div id="flashcardList">${list.length ? list.map((w) => `<article class="card"><div class="row" style="justify-content:space-between"><span class="chip">Buổi ${w.s || 1}</span>${isMimi ? "" : `<button data-card-delete="${w.id}">Xoá thẻ</button>`}</div><div class="big">${esc(w.k)}</div><div class="mu">${esc(w.h || "")}</div><p>${esc(w.m || "")}</p>${w.v ? `<div class="mu">Hán-Việt: ${esc(w.v)}</div>` : ""}${w.e ? `<div class="ex"><small>VÍ DỤ</small>${esc(w.e)}<br><span class="mu">${esc(w.t || "")}</span></div>` : ""}${w.p ? `<div class="mu">Mức độ: ${esc(w.p)}</div>` : ""}</article>`).join("") : '<div class="card">Chưa có từ trong buổi này.</div>'}</div>`;
+    `<button id="backHome">← ${esc(FN)}</button><h1 style="margin-top:12px">Flashcard · ${list.length} từ</h1><div class="row" id="cardBar" style="margin:10px 0"><label>Thẻ <select id="cardSession"><option value="all">Tất cả</option>${sessions.map((n) => `<option value="${n}"${+session === n ? " selected" : ""}>${esc(sLabel(n))}</option>`).join("")}</select></label>${isMimi ? "" : `${session === "all" ? "" : `<button id="cardRename">Đổi tên thẻ</button><button class="danger" id="cardDelSes">Xoá cả thẻ này</button>`}<button id="cardAdd">Thêm thẻ mới</button>`}</div><div id="flashcardList">${list.length ? list.map(cardHtml).join("") : '<div class="card">Chưa có từ trong thẻ này.</div>'}</div>`;
   $("#backHome").onclick = home;
   $("#cardSession").onchange = (e) => flashcards(e.target.value);
   if (!isMimi) {
@@ -454,31 +454,73 @@ function flashcards(session = "all") {
         $("#addWords").click();
       }, 0);
     };
+    if ($("#cardRename")) {
+      $("#cardRename").onclick = () => renameSession(session);
+      $("#cardDelSes").onclick = () => deleteSession(session);
+    }
     document
       .querySelectorAll("[data-card-delete]")
       .forEach(
         (b) => (b.onclick = () => deleteCard(+b.dataset.cardDelete, session)),
       );
+    document
+      .querySelectorAll("[data-card-edit]")
+      .forEach(
+        (b) => (b.onclick = () => editCard(+b.dataset.cardEdit, session)),
+      );
   }
 }
+function editCard(id, session) {
+  const f = curF(),
+    c = f && f.w[id - 1],
+    art = document.querySelector(`[data-card="${id}"]`);
+  if (!c || !art) return;
+  const ss = [...new Set(f.w.map((x) => +x.s || 1))].sort((a, b) => a - b);
+  const v = (k) => esc(c[k] || "");
+  art.innerHTML = `<div class="ed">
+  <label>Từ<input id="ek" value="${v("k")}"></label>
+  <div class="two"><label>Cách đọc<input id="eh" value="${v("h")}"></label><label>Hán-Việt<input id="ev" value="${v("v")}"></label></div>
+  <label>Nghĩa<textarea id="em">${v("m")}</textarea></label>
+  <label>Ví dụ<textarea id="ee">${v("e")}</textarea></label>
+  <label>Dịch ví dụ<textarea id="et">${v("t")}</textarea></label>
+  <div class="two"><label>Mức độ<input id="ep" value="${v("p")}"></label><label>Thuộc thẻ<select id="es">${ss.map((n) => `<option value="${n}"${n === (+c.s || 1) ? " selected" : ""}>${esc(sLabel(n))}</option>`).join("")}</select></label></div>
+  <div class="row"><button class="p" id="esave">Lưu</button><button id="ecancel">Huỷ</button></div></div>`;
+  const y = window.scrollY;
+  $("#ek").focus();
+  $("#ecancel").onclick = () => flashcards(session);
+  $("#esave").onclick = () => {
+    const k = $("#ek").value.trim();
+    if (!k) {
+      $("#ek").classList.add("shake");
+      setTimeout(() => $("#ek").classList.remove("shake"), 300);
+      return;
+    }
+    Object.assign(c, {
+      k,
+      h: $("#eh").value.trim(),
+      v: $("#ev").value.trim(),
+      m: $("#em").value.trim(),
+      e: $("#ee").value.trim(),
+      t: $("#et").value.trim(),
+      p: $("#ep").value.trim(),
+      s: +$("#es").value,
+    });
+    touch(f);
+    reopenCards(session, y);
+  };
+}
 function deleteCard(id, session) {
-  if (!confirm("Xoá thẻ từ này?")) return;
-  const f = FO.find((x) => x.id === FID);
-  if (!f) return;
-  f.w.splice(id - 1, 1);
-  const np = {};
-  Object.entries(P).forEach(([key, val]) => {
-    const n = +key;
-    if (!Number.isNaN(n)) {
-      if (n < id) np[key] = val;
-      else if (n > id) np[n - 1] = val;
-    } else np[key] = val;
-  });
-  P = np;
-  save();
-  sv();
-  openF(FID);
-  setTimeout(() => flashcards(session), 0);
+  const f = curF();
+  if (!f || !f.w[id - 1]) return;
+  confirmBox(
+    "Xoá thẻ từ này?",
+    `Bạn có chắc muốn xoá từ “${f.w[id - 1].k}” không? Không thể hoàn tác.`,
+    "Xoá",
+    () => {
+      dropWords(f, new Set([id]));
+      reopenCards(session);
+    },
+  );
 }
 function libraryBackup() {
   const p = {};
@@ -494,7 +536,15 @@ function restoreLibrary(o) {
   (o.f || []).forEach((f) => {
     const x = FO.find((y) => y.id === f.id);
     if (!x) FO.push(f);
-    else if (Array.isArray(f.w) && f.w.length > x.w.length) x.w = f.w;
+    else if (
+      Array.isArray(f.w) &&
+      ((f.u || 0) > (x.u || 0) || f.w.length > x.w.length)
+    ) {
+      x.w = f.w;
+      if (f.name) x.name = f.name;
+      if (f.sn) x.sn = f.sn;
+      if (f.u) x.u = f.u;
+    }
   });
   sv();
   Object.entries(o.p || {}).forEach(([id, p]) => {
@@ -661,6 +711,159 @@ const sv = () => {
 let isMimi = true,
   FN = "",
   FID = "mimi";
+// Tên thẻ (buổi): mặc định "Buổi n", có thể đổi thành "Từ vựng 1.1"...
+const curF = () => FO.find((x) => x.id === FID);
+const sLabel = (n) => {
+  const f = isMimi ? null : curF();
+  return (f && f.sn && f.sn[n]) || "Buổi " + n;
+};
+const touch = (f) => {
+  f.u = Date.now();
+  sv();
+};
+function reopenCards(session, y) {
+  openF(FID);
+  setTimeout(() => {
+    flashcards(session);
+    if (y) window.scrollTo(0, y);
+  }, 0);
+}
+// Hộp xác nhận ngay trong trang: [Huỷ] [Xoá]
+function confirmBox(title, msg, okText, onOk) {
+  const ov = document.createElement("div");
+  ov.className = "modal";
+  ov.innerHTML = `<div class="dlg" role="alertdialog" aria-modal="true"><h2>${esc(title)}</h2><p>${esc(msg)}</p><div class="row"><button id="cfNo">Huỷ</button><button class="danger" id="cfOk">${esc(okText)}</button></div></div>`;
+  document.body.appendChild(ov);
+  const close = () => {
+    ov.remove();
+    document.removeEventListener("keydown", kd, true);
+  };
+  const kd = (e) => {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      e.stopPropagation();
+      close();
+    }
+  };
+  document.addEventListener("keydown", kd, true);
+  ov.onclick = (e) => {
+    if (e.target === ov) close();
+  };
+  $("#cfNo").onclick = close;
+  $("#cfOk").onclick = () => {
+    close();
+    onOk();
+  };
+  $("#cfNo").focus();
+}
+// Xoá nhiều từ cùng lúc, dồn lại số thứ tự và tiến độ học
+function dropWords(f, drop) {
+  const map = {};
+  let n = 0;
+  f.w = f.w.filter((x, i) => {
+    if (drop.has(i + 1)) return false;
+    map[i + 1] = ++n;
+    return true;
+  });
+  const np = {};
+  Object.entries(P).forEach(([k, v]) => {
+    if (Number.isNaN(+k)) np[k] = v;
+    else if (map[+k]) np[map[+k]] = v;
+  });
+  P = np;
+  save();
+  touch(f);
+}
+function deleteSession(session) {
+  const f = curF();
+  if (!f || session === "all") return;
+  const ids = new Set();
+  f.w.forEach((x, i) => {
+    if ((+x.s || 1) === +session) ids.add(i + 1);
+  });
+  if (!ids.size) return;
+  const label = sLabel(+session),
+    whole = ids.size === f.w.length;
+  confirmBox(
+    "Xoá cả thẻ này?",
+    `Bạn có chắc muốn xoá thẻ “${label}” cùng ${ids.size} từ trong đó không?${whole ? " Đây là thẻ duy nhất nên cả bộ sẽ bị xoá." : ""} Tiến độ học của các từ này cũng mất và không thể hoàn tác.`,
+    "Xoá",
+    () => {
+      if (whole) return removeDeckNow();
+      dropWords(f, ids);
+      if (f.sn) delete f.sn[session];
+      touch(f);
+      reopenCards("all");
+    },
+  );
+}
+function removeDeckNow() {
+  FO = FO.filter((f) => f.id !== FID);
+  sv();
+  try {
+    localStorage.removeItem(scopedKey(KEY));
+  } catch (e) {}
+  lib();
+}
+// Ô nhập tên ngay trên trang (thay cho hộp thoại prompt của trình duyệt)
+function askName(anchor, title, value, onSave, allowEmpty) {
+  const old = document.querySelector("#renBox");
+  if (old) old.remove();
+  if (!anchor) return;
+  const box = document.createElement("div");
+  box.className = "card ed";
+  box.id = "renBox";
+  box.innerHTML = `<label>${esc(title)}<input id="renIn" value="${esc(value)}" maxlength="60" autocomplete="off"></label><div class="row"><button class="p" id="renOk">Lưu</button><button id="renNo">Huỷ</button></div>`;
+  anchor.insertAdjacentElement("afterend", box);
+  const inp = $("#renIn");
+  inp.focus();
+  inp.select();
+  box.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  const done = () => {
+    const t = inp.value.trim();
+    if (!t && !allowEmpty) {
+      inp.classList.add("shake");
+      setTimeout(() => inp.classList.remove("shake"), 300);
+      return;
+    }
+    box.remove();
+    onSave(t);
+  };
+  $("#renOk").onclick = done;
+  $("#renNo").onclick = () => box.remove();
+  inp.onkeydown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      done();
+    } else if (e.key === "Escape") box.remove();
+  };
+}
+function renameSession(session) {
+  const f = curF();
+  if (!f || session === "all") return;
+  askName(
+    $("#cardBar"),
+    "Tên thẻ (ví dụ: Từ vựng 1.1). Để trống = Buổi " + session,
+    sLabel(+session),
+    (t) => {
+      f.sn = f.sn || {};
+      if (t && t !== "Buổi " + session) f.sn[session] = t;
+      else delete f.sn[session];
+      touch(f);
+      reopenCards(session);
+    },
+    true,
+  );
+}
+function renameDeck() {
+  const f = curF();
+  if (!f) return;
+  askName($("#deckBar"), "Tên bộ từ", f.name, (t) => {
+    f.name = t;
+    touch(f);
+    openF(FID);
+  });
+}
 function openF(id) {
   FID = id;
   isMimi = id === "mimi";
@@ -734,15 +937,17 @@ function parseTable(t) {
   return rows.filter((r) => r.some((x) => x.trim()));
 }
 const COLS = [
-  ["k", /言葉|単語|từ vựng|word|kanji|漢字|^từ$/i],
+  ["k", /言葉|単語|日本語|từ vựng|word|kanji|漢字|^từ$|^tiếng nhật$|^japanese$/i],
   ["h", /読み|よみ|hiragana|cách đọc|reading|furigana/i],
-  ["m", /意味|nghĩa|meaning/i],
+  ["m", /意味|nghĩa|meaning|^ベトナム語$|^tiếng việt$|^vietnamese$/i],
   ["e", /例文|ví dụ|example/i],
   ["t", /訳|dịch|translation/i],
   ["v", /hán.?việt|漢越/i],
   ["g", /nhóm|group|分類|chủ đề/i],
-  ["p", /mức độ|muc do|level|difficulty|rank/i],
+  ["p", /mức độ|muc do|level|difficulty|rank|重要/i],
 ];
+// Cột số thứ tự (No., STT, #...) luôn bị bỏ qua
+const IDX = /^(no\.?|stt|#|№|số tt|số thứ tự|番号|ばんごう)$/i;
 const LB = {
   k: "Từ",
   h: "Cách đọc",
@@ -756,7 +961,8 @@ const LB = {
 function readTable(t) {
   const rows = parseTable(t);
   let map = null,
-    st = 0;
+    st = 0,
+    noCol = false;
   for (let i = 0; i < Math.min(6, rows.length); i++) {
     const m = {};
     rows[i].forEach((x, j) => {
@@ -771,16 +977,22 @@ function readTable(t) {
     if (m.k != null && (m.m != null || m.h != null)) {
       map = m;
       st = i + 1;
+      noCol = rows[i].some((x) => IDX.test(x.trim().replace(/^\uFEFF/, "")));
       break;
     }
   }
   if (!map) {
-    map = { k: 0, h: 1, m: 2, e: 3, t: 4 };
-    st = 0;
+    // Không thấy dòng tiêu đề: nếu cột đầu toàn số (1, 2, 3...) thì coi là STT và bỏ qua
+    const isN = (r) => /^\d+$/.test((r[0] || "").trim());
+    const idx = rows.filter(isN).length >= Math.max(2, rows.length * 0.8) ? 1 : 0;
+    map = { k: idx, h: idx + 1, m: idx + 2, e: idx + 3, t: idx + 4 };
+    st = idx ? Math.max(0, rows.findIndex(isN)) : 0;
+    noCol = !!idx;
   }
   const g = (r, f) => (map[f] == null ? "" : (r[map[f]] || "").trim());
   return {
     map,
+    noCol,
     w: rows
       .slice(st)
       .map((r) => ({
@@ -806,8 +1018,9 @@ function imp(tid, expanded = false) {
     $("#showImp").onclick = () => imp(null, true);
     return;
   }
+  const nextS = f ? Math.max(0, ...f.w.map((x) => +x.s || 1)) + 1 : 1;
   $("#imp").innerHTML =
-    `<h2>${f ? "Thêm từ vào “" + esc(f.name) + "”" : "Tạo bộ từ vựng mới"}</h2>${f ? "" : `<input id='nm' placeholder='Tên bộ, ví dụ: IT日本語 – Mạng' style='${fs};margin-bottom:8px'>`}<input id='csvFile' type='file' accept='.csv,text/csv' hidden><button id='uploadCsv' type='button'>Upload File (.csv)</button><textarea id='tb' style='${fs};height:120px' spellcheck='false' placeholder='Hoặc dán dữ liệu CSV/Google Sheets vào đây.'></textarea><p class='mu' id='pv'>Cột CSV được map thành {k,h,m,e,t,p}: Từ vựng, Cách đọc, Ý nghĩa, Ví dụ, Dịch nghĩa, Mức độ.</p><button class='p' id='ok'>${f ? "Thêm vào bộ" : "Tạo bộ"}</button>`;
+    `<h2>${f ? "Thêm từ vào “" + esc(f.name) + "”" : "Tạo bộ từ vựng mới"}</h2>${f ? "" : `<input id='nm' placeholder='Tên bộ, ví dụ: IT日本語 – Mạng' style='${fs};margin-bottom:8px'>`}<input id='sn' placeholder='Tên thẻ, ví dụ: Từ vựng 1.1 (để trống = Buổi ${nextS})' style='${fs};margin-bottom:8px'><input id='csvFile' type='file' accept='.csv,text/csv' hidden><button id='uploadCsv' type='button'>Upload File (.csv)</button><textarea id='tb' style='${fs};height:120px' spellcheck='false' placeholder='Hoặc dán dữ liệu CSV/Google Sheets vào đây.'></textarea><p class='mu' id='pv'>Cột CSV được map thành: Từ vựng, Cách đọc, Ý nghĩa, Ví dụ, Dịch nghĩa, Mức độ. Cột số thứ tự (No., STT) sẽ tự bỏ qua.</p><button class='p' id='ok'>${f ? "Thêm vào bộ" : "Tạo bộ"}</button>`;
   const tb = $("#tb");
   $("#uploadCsv").onclick = () => $("#csvFile").click();
   $("#csvFile").onchange = async (e) => {
@@ -821,6 +1034,12 @@ function imp(tid, expanded = false) {
     try {
       tb.value = await file.text();
       tb.dispatchEvent(new Event("input"));
+      const sn = $("#sn");
+      if (sn && !sn.value.trim()) {
+        // Gợi ý tên thẻ từ tên file: "..._-_7_3_LAN間接続装置.csv" -> "7.3 LAN間接続装置"
+        const stem = file.name.replace(/\.csv$/i, "").split("_-_").pop();
+        sn.value = stem.replace(/_+/g, " ").trim().replace(/^(\d+) (\d+) /, "$1.$2 ");
+      }
     } catch (_) {
       alert("Không thể đọc file CSV.");
     }
@@ -831,7 +1050,7 @@ function imp(tid, expanded = false) {
     $("#pv").textContent = r.w.length
       ? `Nhận được ${r.w.length} từ. Cột: ${Object.keys(r.map)
           .map((k) => LB[k])
-          .join(", ")}.${nr ? ` ${nr} từ chưa có cách đọc.` : ""}`
+          .join(", ")}.${r.noCol ? " Đã bỏ cột STT." : ""}${nr ? ` ${nr} từ chưa có cách đọc.` : ""}`
       : "Chưa nhận được từ nào.";
   };
   $("#ok").onclick = () => {
@@ -844,19 +1063,23 @@ function imp(tid, expanded = false) {
     r.w.forEach((x) => {
       x.s = targetSession;
     });
-    if (f) f.w.push(...r.w);
-    else
+    const sname = $("#sn").value.trim();
+    if (f) {
+      f.w.push(...r.w);
+      if (sname) (f.sn = f.sn || {})[targetSession] = sname;
+    } else
       FO.push({
         id: "f" + Date.now().toString(36),
         name: $("#nm").value.trim() || "Bộ mới",
         w: r.w,
+        sn: sname ? { 1: sname } : {},
       });
-    sv();
+    touch(f || FO[FO.length - 1]);
     alert(
       "Đã thêm thành công " +
         r.w.length +
-        " từ vựng mới · Buổi " +
-        targetSession,
+        " từ vựng mới · " +
+        (sname || "Buổi " + targetSession),
     );
     openF(f ? f.id : FO[FO.length - 1].id);
   };
