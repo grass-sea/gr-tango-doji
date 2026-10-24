@@ -1,0 +1,54 @@
+:root{--bg:#f4efe4;--sf:#fffcf5;--tx:#1c2333;--mu:#6a6455;--ln:#ddd2bd;--ac:#1f3f73;--acx:#fff;--ok:#2e7a4e;--okb:#e5f0df;--bad:#c4302b;--badb:#fbe4de;--chip:#eadfc9;--pat:rgba(31,63,115,.09);--shu:#c8372d;--sk:#f7dde1;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111722;--sf:#192131;--tx:#ece6d6;--mu:#a9a38f;--ln:#2e3749;--ac:#f2a9b6;--acx:#2a1219;--ok:#8fd19e;--okb:#14291d;--bad:#ff8f80;--badb:#34191a;--chip:#232d40;--pat:rgba(242,169,182,.07);--shu:#ff7b6b;--sk:#3a2530}}
+:root[data-theme="dark"]{--bg:#111722;--sf:#192131;--tx:#ece6d6;--mu:#a9a38f;--ln:#2e3749;--ac:#f2a9b6;--acx:#2a1219;--ok:#8fd19e;--okb:#14291d;--bad:#ff8f80;--badb:#34191a;--chip:#232d40;--pat:rgba(242,169,182,.07);--shu:#ff7b6b;--sk:#3a2530}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background-color:var(--bg);background-image:radial-gradient(circle at 50% 100%,transparent 0 34%,var(--pat) 34% 38%,transparent 38% 54%,var(--pat) 54% 58%,transparent 58% 74%,var(--pat) 74% 78%,transparent 78%),radial-gradient(circle at 50% 100%,transparent 0 34%,var(--pat) 34% 38%,transparent 38% 54%,var(--pat) 54% 58%,transparent 58% 74%,var(--pat) 74% 78%,transparent 78%);background-size:64px 32px;background-position:0 0,32px 16px;color:var(--tx);font:15px/1.55 system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Hiragino Sans","Yu Gothic UI","Meiryo","Noto Sans JP",sans-serif}
+main{max-width:760px;margin:0 auto;padding:28px 18px 60px}
+h1{font:700 26px/1.3 Georgia,"Times New Roman","Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;margin:0 0 6px;color:var(--ac)}h2{font-size:15px;margin:0 0 10px}
+.mu{color:var(--mu)}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.card{background:var(--sf);border:1px solid var(--ln);border-top:3px solid var(--ac);border-radius:4px;padding:16px 18px;margin:14px 0}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{background:var(--sf);border:1px solid var(--ln);border-radius:10px;padding:12px 14px}
+.stat b{display:block;font:700 28px/1.3 Georgia,"Times New Roman","Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;color:var(--ac)}.stat:nth-child(3) b{color:var(--shu)}
+label.opt{display:flex;gap:8px;align-items:flex-start;padding:8px 0;cursor:pointer}
+select,input[type=number],textarea{font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--ln);border-radius:8px;padding:7px 9px}
+select:focus-visible,input:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--ln);background:var(--sf);color:var(--tx);padding:8px 14px}
+button.p{background:var(--ac);color:var(--acx);border-color:var(--ac);font-weight:600}
+button:disabled{opacity:.45;cursor:not-allowed}
+.chip{display:inline-block;background:var(--chip);border-radius:6px;padding:2px 8px;font-size:12.5px;margin:0 6px 6px 0}
+.bar{height:6px;background:var(--chip);border-radius:3px;overflow:hidden;margin:6px 0 14px}.bar i{display:block;height:100%;background:var(--shu)}
+.big{font-family:Georgia,"Times New Roman","Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;font-size:56px;line-height:1.2;margin:10px 0 6px;word-break:break-word}
+.big.vi{font-size:28px}
+#ans{width:100%;font-size:24px;padding:12px 14px;margin:12px 0 8px;border-radius:10px}
+.shake{animation:sh .25s}@keyframes sh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@media (prefers-reduced-motion:reduce){.shake{animation:none}}
+.res{border-radius:10px;padding:12px 14px;margin-top:10px}
+.res.ok{background:var(--okb);color:var(--ok)}.res.no{background:var(--badb);color:var(--bad)}
+.res .det{color:var(--tx);margin-top:6px}
+.res .det .k{font-size:26px}
+table{border-collapse:collapse;width:100%}td{padding:6px 8px;border-top:1px solid var(--ln);vertical-align:top}
+.hidden{display:none}textarea{width:100%;height:90px;font-size:12px}
+body::before{content:"";display:block;height:6px;background:linear-gradient(90deg,var(--ac) 0 72%,var(--shu) 72% 100%)}
+.hanko{display:inline-block;background:var(--shu);color:#fff;font:700 15px/1 serif;padding:7px 6px;border-radius:3px;margin-right:8px;vertical-align:3px;letter-spacing:0}
+.chip{border:1px solid var(--ln)}.res.ok{border-left:4px solid var(--ok)}.res.no{border-left:4px solid var(--shu)}
+.rh{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:17px}
+.ic{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--ok);color:var(--sf);font-size:14px;font-weight:700}.res.no .ic{background:var(--shu)}
+.mine{text-decoration:line-through;background:var(--sf);border-radius:6px;padding:1px 10px;color:var(--bad)}
+.res .det{background:var(--sf);color:var(--tx);border-radius:8px;padding:14px 16px;margin-top:10px}
+.ans{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.res .det .k{font:700 36px/1.2 Georgia,'Times New Roman','Hiragino Mincho ProN','Yu Mincho','Noto Serif JP',serif}
+.rd{font-size:18px;color:var(--mu)}
+.det small{display:block;font-size:11px;letter-spacing:.08em;color:var(--mu);margin-bottom:3px;font-weight:700}
+.mean{margin-top:12px;padding:10px 14px;border-left:4px solid var(--ac);background:var(--chip);border-radius:0 8px 8px 0;font-size:21px;font-weight:700;line-height:1.35}
+.hv{margin-top:14px}.tiles{display:flex;gap:8px;flex-wrap:wrap}
+.tl{display:flex;flex-direction:column;align-items:center;border:1px solid var(--ln);border-radius:8px;padding:6px 14px;min-width:68px}
+.tl b{font:700 26px/1.25 Georgia,'Hiragino Mincho ProN','Yu Mincho','Noto Serif JP',serif}
+.tl i{font-style:normal;font-size:13px;font-weight:700;color:var(--shu);letter-spacing:.05em}
+.hvt{font-size:16px;font-weight:700;color:var(--shu);letter-spacing:.05em}
+.ex{margin-top:14px;padding-top:10px;border-top:1px dashed var(--ln)}
+
+/* Điện thoại */
+@media (max-width:560px){main{padding:18px 12px 48px}h1{font-size:22px}.stats{gap:8px}.stat{padding:10px}.stat b{font-size:22px}.big{font-size:42px}.big.vi{font-size:24px}.res .det .k{font-size:30px}.mean{font-size:19px}button{min-height:44px}select,textarea,input{font-size:16px}.card{padding:14px}}
+
