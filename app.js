@@ -6,6 +6,16 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;',
 let KEY='n3vocab_v1',P={};const ld=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}};
 
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(P))}catch(e){}};
+async function cpy(ta,msg){
+ if(!ta.value.trim()){msg.textContent='Chưa có gì để sao chép. Bấm Xuất trước.';return}
+ const okm='Đã sao chép. Sang máy kia bấm Dán rồi Nhập.';
+ try{await navigator.clipboard.writeText(ta.value);msg.textContent=okm}
+ catch(e){ta.focus();ta.select();let ok=false;try{ok=document.execCommand('copy')}catch(_){}msg.textContent=ok?okm:'Không tự sao chép được. Hãy bấm vào ô, nhấn Ctrl+A rồi Ctrl+C.'}
+}
+async function pst(ta,msg){
+ try{const t=await navigator.clipboard.readText();if(!t.trim()){msg.textContent='Bộ nhớ tạm đang trống.';return}ta.value=t;msg.textContent='Đã dán. Bấm Nhập để áp dụng.'}
+ catch(e){ta.focus();msg.textContent='Trình duyệt không cho dán tự động. Hãy bấm vào ô rồi dán thủ công (Ctrl+V, hoặc giữ ngón tay chọn Dán).'}
+}
 const mergeP=(a,b)=>{let n=0;for(const id in b){const e=b[id];if(!Array.isArray(e)||e.length<4||e.some(x=>typeof x!=='number'))continue;const c=a[id];if(!c||e[2]+e[3]>c[2]+c[3]){a[id]=e;n++}}return n};
 const dayNum=()=>Math.floor((Date.now()-new Date().getTimezoneOffset()*6e4)/864e5);
 const INT=[0,1,3,7,14,30],REV=new Set([6,12,18,24,30,36]);
@@ -93,15 +103,15 @@ function home(){
   <button class="p" id="go"${list.length?'':' disabled'}>Bắt đầu</button></div>
  <details class="card"><summary>Sao lưu tiến độ</summary>
   <p class="mu">Tiến độ được lưu trong trình duyệt này. Để chuyển sang máy khác, bấm Xuất, chép đoạn chữ, rồi dán vào ô và bấm Nhập ở máy kia.</p>
-  <textarea id="io" spellcheck="false"></textarea><div class="row" style="margin-top:8px"><button id="ex">Xuất</button><button id="im">Nhập</button><span id="iom" class="mu"></span></div></details>`;
+  <textarea id="io" spellcheck="false"></textarea><div class="row" style="margin-top:8px"><button id="ex">Xuất</button><button id="cp">Sao chép</button><button id="ps">Dán</button><button id="im">Nhập</button><span id="iom" class="mu"></span></div></details>`;
  document.querySelectorAll('input[name=mode]').forEach(r=>r.onchange=()=>{S.mode=r.value});
  $('#scope').onchange=e=>{S.scope=e.target.value;home()};
  $('#from').onchange=e=>{S.from=+e.target.value;if(S.to<S.from)S.to=S.from;home()};
  $('#to').onchange=e=>{S.to=+e.target.value;if(S.from>S.to)S.from=S.to;home()};
  $('#cat').onchange=e=>{S.cat=e.target.value;home()};
  $('#go').onclick=()=>start(list);$('#lib').onclick=lib;
- $('#ex').onclick=()=>{$('#io').value=JSON.stringify(P);$('#iom').textContent='Đã xuất. Hãy chép đoạn chữ trong ô.'};
- $('#im').onclick=()=>{try{const o=JSON.parse($('#io').value);if(!o||typeof o!=='object'||Array.isArray(o))throw 0;if('f' in o||'p' in o||'v' in o){$('#iom').textContent='Đây là bản sao lưu toàn bộ. Hãy nhập ở màn hình Thư viện.';return}const n=mergeP(P,o);save();$('#iom').textContent='Đã gộp '+n+' từ vào tiến độ của bộ này.';setTimeout(home,1200)}catch(e){$('#iom').textContent='Đoạn chữ không hợp lệ.'}};
+ $('#ex').onclick=()=>{$('#io').value=JSON.stringify(P);$('#iom').textContent='Đã xuất. Bấm Sao chép để chép vào bộ nhớ tạm.'};
+ $('#cp').onclick=()=>cpy($('#io'),$('#iom'));$('#ps').onclick=()=>pst($('#io'),$('#iom'));$('#im').onclick=()=>{try{const o=JSON.parse($('#io').value);if(!o||typeof o!=='object'||Array.isArray(o))throw 0;if('f' in o||'p' in o||'v' in o){$('#iom').textContent='Đây là bản sao lưu toàn bộ. Hãy nhập ở màn hình Thư viện.';return}const n=mergeP(P,o);save();$('#iom').textContent='Đã gộp '+n+' từ vào tiến độ của bộ này.';setTimeout(home,1200)}catch(e){$('#iom').textContent='Đoạn chữ không hợp lệ.'}};
 }
 function start(list){Q={mode:S.mode,items:shuffle(list.slice()).map(w=>({w,retry:false})),i:0,total:list.length,ok:0,ng:0,wrong:[],phase:'ask',hint:0};quiz()}
 const qm=w=>Q.mode==='read'&&hasK(w.k)?'read':'write';
@@ -194,12 +204,12 @@ function imp(tid){
 function lib(){
  Q=null;const t=dayNum();
  const card=(id,name,n,p)=>{const en=Object.values(p),due=en.filter(e=>e[1]<=t).length;return `<div class='card'><div class='row' style='justify-content:space-between'><div><b>${esc(name)}</b><div class='mu'>${n} từ · đã làm ${en.length} · đến hạn ôn ${due}</div></div><div class='row'><button class='p' data-o='${id}'>Mở</button>${id==='mimi'?'':`<button data-a='${id}'>Thêm từ</button><button data-d='${id}'>Xoá</button>`}</div></div></div>`};
- $('#app').innerHTML=`<h1><span class='hanko'>辞</span>Thư viện từ vựng</h1><div class='mu'>Mỗi bộ có tiến độ học riêng, không lẫn nhau.</div>${card('mimi','Mimikara N3',MIMI.length,ld('n3vocab_v1')||{})}${FO.map(f=>card(f.id,f.name,f.w.length,ld('n3vocab_p_'+f.id)||{})).join('')}<div class='card' id='imp'></div><details class='card'><summary>Sao lưu toàn bộ thư viện</summary><p class='mu'>Gồm mọi bộ từ và tiến độ. Bấm Xuất, chép đoạn chữ, rồi dán vào ô và bấm Nhập ở máy khác.</p><textarea id='bio' spellcheck='false'></textarea><div class='row' style='margin-top:8px'><button id='bx'>Xuất</button><button id='bi'>Nhập</button><span id='bm' class='mu'></span></div></details>`;
+ $('#app').innerHTML=`<h1><span class='hanko'>辞</span>Thư viện từ vựng</h1><div class='mu'>Mỗi bộ có tiến độ học riêng, không lẫn nhau.</div>${card('mimi','Mimikara N3',MIMI.length,ld('n3vocab_v1')||{})}${FO.map(f=>card(f.id,f.name,f.w.length,ld('n3vocab_p_'+f.id)||{})).join('')}<div class='card' id='imp'></div><details class='card'><summary>Sao lưu toàn bộ thư viện</summary><p class='mu'>Gồm mọi bộ từ và tiến độ. Bấm Xuất, chép đoạn chữ, rồi dán vào ô và bấm Nhập ở máy khác.</p><textarea id='bio' spellcheck='false'></textarea><div class='row' style='margin-top:8px'><button id='bx'>Xuất</button><button id='bc'>Sao chép</button><button id='bp'>Dán</button><button id='bi'>Nhập</button><span id='bm' class='mu'></span></div></details>`;
  document.querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>openF(b.dataset.o));
  document.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{imp(b.dataset.a);$('#imp').scrollIntoView()});
  document.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{if(!b.dataset.s){b.dataset.s=1;b.textContent='Bấm lại để xoá';return}const id=b.dataset.d;FO=FO.filter(x=>x.id!==id);sv();try{localStorage.removeItem('n3vocab_p_'+id)}catch(e){}lib()});
- $('#bx').onclick=()=>{const p={};FO.forEach(f=>p[f.id]=ld('n3vocab_p_'+f.id)||{});$('#bio').value=JSON.stringify({v:ld('n3vocab_v1')||{},f:FO,p});$('#bm').textContent='Đã xuất. Hãy chép đoạn chữ trong ô.'};
- $('#bi').onclick=()=>{try{const o=JSON.parse($('#bio').value);
+ $('#bx').onclick=()=>{const p={};FO.forEach(f=>p[f.id]=ld('n3vocab_p_'+f.id)||{});$('#bio').value=JSON.stringify({v:ld('n3vocab_v1')||{},f:FO,p});$('#bm').textContent='Đã xuất. Bấm Sao chép để chép vào bộ nhớ tạm.'};
+ $('#bc').onclick=()=>cpy($('#bio'),$('#bm'));$('#bp').onclick=()=>pst($('#bio'),$('#bm'));$('#bi').onclick=()=>{try{const o=JSON.parse($('#bio').value);
   if(!o||typeof o!=='object'||!('f' in o||'p' in o||'v' in o)){$('#bm').textContent='Đây không phải bản sao lưu toàn bộ. Nếu là tiến độ của một bộ, hãy mở bộ đó rồi nhập ở mục Sao lưu tiến độ.';return}
   const v=ld('n3vocab_v1')||{};mergeP(v,o.v||{});localStorage.setItem('n3vocab_v1',JSON.stringify(v));
   (o.f||[]).forEach(f=>{const x=FO.find(y=>y.id===f.id);if(!x)FO.push(f);else if(f.w.length>x.w.length)x.w=f.w});sv();
