@@ -6,6 +6,7 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;',
 let KEY='n3vocab_v1',P={};const ld=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}};
 
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(P))}catch(e){}};
+const mergeP=(a,b)=>{let n=0;for(const id in b){const e=b[id];if(!Array.isArray(e)||e.length<4||e.some(x=>typeof x!=='number'))continue;const c=a[id];if(!c||e[2]+e[3]>c[2]+c[3]){a[id]=e;n++}}return n};
 const dayNum=()=>Math.floor((Date.now()-new Date().getTimezoneOffset()*6e4)/864e5);
 const INT=[0,1,3,7,14,30],REV=new Set([6,12,18,24,30,36]);
 const hasK=s=>/[\u4e00-\u9fff]/.test(s);
@@ -100,7 +101,7 @@ function home(){
  $('#cat').onchange=e=>{S.cat=e.target.value;home()};
  $('#go').onclick=()=>start(list);$('#lib').onclick=lib;
  $('#ex').onclick=()=>{$('#io').value=JSON.stringify(P);$('#iom').textContent='Đã xuất. Hãy chép đoạn chữ trong ô.'};
- $('#im').onclick=()=>{try{const o=JSON.parse($('#io').value);if(!o||typeof o!=='object')throw 0;P=o;save();home()}catch(e){$('#iom').textContent='Đoạn chữ không hợp lệ.'}};
+ $('#im').onclick=()=>{try{const o=JSON.parse($('#io').value);if(!o||typeof o!=='object'||Array.isArray(o))throw 0;if('f' in o||'p' in o||'v' in o){$('#iom').textContent='Đây là bản sao lưu toàn bộ. Hãy nhập ở màn hình Thư viện.';return}const n=mergeP(P,o);save();$('#iom').textContent='Đã gộp '+n+' từ vào tiến độ của bộ này.';setTimeout(home,1200)}catch(e){$('#iom').textContent='Đoạn chữ không hợp lệ.'}};
 }
 function start(list){Q={mode:S.mode,items:shuffle(list.slice()).map(w=>({w,retry:false})),i:0,total:list.length,ok:0,ng:0,wrong:[],phase:'ask',hint:0};quiz()}
 const qm=w=>Q.mode==='read'&&hasK(w.k)?'read':'write';
@@ -198,7 +199,11 @@ function lib(){
  document.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{imp(b.dataset.a);$('#imp').scrollIntoView()});
  document.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{if(!b.dataset.s){b.dataset.s=1;b.textContent='Bấm lại để xoá';return}const id=b.dataset.d;FO=FO.filter(x=>x.id!==id);sv();try{localStorage.removeItem('n3vocab_p_'+id)}catch(e){}lib()});
  $('#bx').onclick=()=>{const p={};FO.forEach(f=>p[f.id]=ld('n3vocab_p_'+f.id)||{});$('#bio').value=JSON.stringify({v:ld('n3vocab_v1')||{},f:FO,p});$('#bm').textContent='Đã xuất. Hãy chép đoạn chữ trong ô.'};
- $('#bi').onclick=()=>{try{const o=JSON.parse($('#bio').value);localStorage.setItem('n3vocab_v1',JSON.stringify(o.v||{}));FO=o.f||[];sv();Object.entries(o.p||{}).forEach(([id,p])=>localStorage.setItem('n3vocab_p_'+id,JSON.stringify(p)));lib()}catch(e){$('#bm').textContent='Đoạn chữ không hợp lệ.'}};
+ $('#bi').onclick=()=>{try{const o=JSON.parse($('#bio').value);
+  if(!o||typeof o!=='object'||!('f' in o||'p' in o||'v' in o)){$('#bm').textContent='Đây không phải bản sao lưu toàn bộ. Nếu là tiến độ của một bộ, hãy mở bộ đó rồi nhập ở mục Sao lưu tiến độ.';return}
+  const v=ld('n3vocab_v1')||{};mergeP(v,o.v||{});localStorage.setItem('n3vocab_v1',JSON.stringify(v));
+  (o.f||[]).forEach(f=>{const x=FO.find(y=>y.id===f.id);if(!x)FO.push(f);else if(f.w.length>x.w.length)x.w=f.w});sv();
+  Object.entries(o.p||{}).forEach(([id,p])=>{const q=ld('n3vocab_p_'+id)||{};mergeP(q,p);localStorage.setItem('n3vocab_p_'+id,JSON.stringify(q))});lib()}catch(e){$('#bm').textContent='Đoạn chữ không hợp lệ.'}};
  imp();
 }
 lib();
