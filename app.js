@@ -412,6 +412,21 @@ function home() {
   <p class="mu" style="margin:12px 0 10px">${list.length} từ trong phạm vi này.</p>
   <button class="p" id="go"${list.length ? "" : " disabled"}>Bắt đầu</button></div>
 ${isMimi ? "" : `<div id="imp"></div>`}`;
+  if (!isMimi) {
+    const bar = $("#deckBar"), f = curF();
+    const share = document.createElement("button");
+    share.id = "shareDeck";
+    share.textContent = f?.visibility === "public" ? "Tắt công khai" : "Công khai / chia sẻ";
+    share.onclick = publishCurrentDeck;
+    bar?.insertBefore(share, $("#removeDeck"));
+    const box = document.createElement("div");
+    box.id = "community";
+    box.className = "card";
+    box.innerHTML = f?.libraryId && f?.visibility === "public" ? "Đang tải góp ý..." : "<h2>Góp ý cộng đồng</h2><p class='mu'>Công khai thư viện để bật comment và report.</p>";
+    $("#app")?.appendChild(box);
+    if (f?.libraryId && f?.visibility === "public") community(f.libraryId, true);
+    else if (f?.sharedLibraryId) community(f.sharedLibraryId, false);
+  }
   document.querySelectorAll("input[name=mode]").forEach(
     (r) =>
       (r.onchange = () => {
@@ -463,6 +478,71 @@ function flashcards(session = "all") {
   $("#app").innerHTML =
     `<button id="backHome">← ${esc(FN)}</button><h1 style="margin-top:12px">Flashcard · ${list.length} từ</h1><div class="row" id="cardBar" style="margin:10px 0"><label>Thẻ <select id="cardSession"><option value="all">Tất cả</option>${sessions.map((n) => `<option value="${n}"${+session === n ? " selected" : ""}>${esc(sLabel(n))}</option>`).join("")}</select></label>${isMimi ? "" : `${session === "all" ? "" : `<button id="cardRename">Đổi tên thẻ</button><button class="danger" id="cardDelSes">Xoá cả thẻ này</button>`}<button id="cardAdd">Thêm thẻ mới</button>`}</div><div id="flashcardList">${list.length ? list.map(cardHtml).join("") : '<div class="card">Chưa có từ trong thẻ này.</div>'}</div>`;
   $("#backHome").onclick = home;
+  const reportLibraryId = curF()?.libraryId || curF()?.sharedLibraryId;
+  if (!isMimi && reportLibraryId && cloud().addReport) {
+    document.querySelectorAll("[data-card]").forEach((article) => {
+      const wordId = +article.dataset.card;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "report-word";
+      button.textContent = "Báo lỗi";
+      button.onclick = () => {
+        const old = article.querySelector(".report-form");
+        if (old) { old.remove(); return; }
+        const form = document.createElement("div");
+        form.className = "report-form";
+        form.innerHTML = `<input placeholder="Mô tả lỗi sai" maxlength="300"><div class="row"><button class="p">Gửi report</button><button type="button" class="report-cancel">Huỷ</button></div>`;
+        article.appendChild(form);
+        form.querySelector(".report-cancel").onclick = () => form.remove();
+        form.querySelector(".p").onclick = async () => {
+          const content = form.querySelector("input").value.trim();
+          if (!content) return form.querySelector("input").focus();
+          try {
+            await cloud().addReport(reportLibraryId, { wordId, content });
+            form.innerHTML = `<span class="mu">Đã gửi report cho chủ thư viện.</span>`;
+          } catch (_) {
+            form.innerHTML = `<span class="mu">Không thể gửi report. Hãy kiểm tra đăng nhập.</span>`;
+          }
+        };
+        form.querySelector("input").focus();
+      };
+      article.appendChild(button);
+    });
+  }
+  if (!isMimi && reportLibraryId && cloud().addComment) {
+    document.querySelectorAll("[data-card]").forEach((article) => {
+      const wordId = +article.dataset.card;
+      const reportButton = article.querySelector(".report-word");
+      if (!reportButton) return;
+      reportButton.className = "feedback-button report-button";
+      reportButton.textContent = "Báo lỗi";
+      const commentButton = document.createElement("button");
+      commentButton.type = "button";
+      commentButton.className = "feedback-button";
+      commentButton.textContent = "Bình luận";
+      reportButton.parentNode?.insertBefore(commentButton, reportButton);
+      commentButton.onclick = async () => {
+        const old = article.querySelector(".comment-form");
+        if (old) { old.remove(); return; }
+        const form = document.createElement("div");
+        form.className = "comment-form";
+        form.innerHTML = `<div class="feedback-heading">Góp ý cho từ này</div><div class="word-comments">Đang tải bình luận...</div><textarea placeholder="Chia sẻ góp ý hoặc cách hiểu của bạn..." maxlength="500"></textarea><div class="row feedback-actions"><button class="p">Gửi bình luận</button><button type="button" class="feedback-cancel">Huỷ</button></div>`;
+        article.appendChild(form);
+        try {
+          const comments = (await cloud().listComments(reportLibraryId)).filter((x) => +x.wordId === wordId);
+          form.querySelector(".word-comments").innerHTML = comments.length ? comments.map((x) => `<div class="word-comment"><b>${esc(x.authorName || "Người dùng")}</b><small>${fmtDate(x.createdAt)}</small><div>${esc(x.content || "")}</div></div>`).join("") : `<span class="mu">Chưa có bình luận. Hãy là người đầu tiên góp ý.</span>`;
+        } catch (_) { form.querySelector(".word-comments").textContent = "Không tải được bình luận."; }
+        form.querySelector(".feedback-cancel").onclick = () => form.remove();
+        form.querySelector(".p").onclick = async () => {
+          const content = form.querySelector("textarea").value.trim();
+          if (!content) return form.querySelector("textarea").focus();
+          try { await cloud().addComment(reportLibraryId, { wordId, content }); form.querySelector("textarea").value = ""; form.querySelector(".word-comments").insertAdjacentHTML("beforeend", `<div class="word-comment"><b>Bạn</b><div>${esc(content)}</div></div>`); }
+          catch (_) { alert("Không thể gửi bình luận. Hãy kiểm tra đăng nhập."); }
+        };
+        form.querySelector("textarea").focus();
+      };
+    });
+  }
   $("#cardSession").onchange = (e) => flashcards(e.target.value);
   if (!isMimi) {
     $("#cardAdd").onclick = () => {
@@ -719,6 +799,7 @@ document.addEventListener("keydown", (e) => {
   }
 });
 let FO = ld("n3vocab_folders") || [];
+let SHARED_LIBRARY = null;
 const sv = () => {
   try {
     localStorage.setItem(scopedKey("n3vocab_folders"), JSON.stringify(FO));
@@ -737,7 +818,127 @@ const sLabel = (n) => {
 const touch = (f) => {
   f.u = Date.now();
   sv();
+  if (f?.libraryId && f.visibility === "public" && cloud().publishLibrary)
+    cloud().publishLibrary(libraryData(f)).catch(() => {});
 };
+const cloud = () => window.cloudSync || {};
+const libraryData = (f) => ({
+  id: f.libraryId || null,
+  name: f.name,
+  description: f.description || "",
+  visibility: f.visibility || "private",
+  editors: f.editors || [],
+  words: f.w,
+  sn: f.sn || {},
+});
+function publishCurrentDeck() {
+  changeDeckVisibility();
+}
+async function changeDeckVisibility() {
+  const f = curF();
+  if (!f || isMimi || !cloud().publishLibrary) return;
+  const makePublic = f.visibility !== "public";
+  confirmBox(
+    makePublic ? "Công khai thư viện?" : "Tắt công khai thư viện?",
+    makePublic
+      ? `Mọi người có link sẽ xem và dùng được bộ từ “${f.name}”. Bạn có muốn công khai không?`
+      : `Người khác sẽ không thể mở link thư viện “${f.name}” nữa. Bạn có muốn chuyển về Không công khai không?`,
+    makePublic ? "Công khai" : "Tắt công khai",
+    async () => {
+      try {
+        f.visibility = makePublic ? "public" : "private";
+        f.libraryId = await cloud().publishLibrary(libraryData(f));
+        touch(f);
+        const link = `${location.origin}${location.pathname}?library=${encodeURIComponent(f.libraryId)}`;
+        alert(makePublic ? `Đã công khai thư viện. Link chia sẻ:\n${link}` : "Đã chuyển thư viện về chế độ không công khai.");
+        home();
+      } catch (e) {
+        f.visibility = makePublic ? "private" : "public";
+        alert("Không thể cập nhật chế độ chia sẻ. Hãy kiểm tra đăng nhập và Firestore Rules.");
+      }
+    },
+    makePublic ? "success" : "danger",
+  );
+}
+async function copyLibraryFromShared() {
+  const x = SHARED_LIBRARY;
+  if (!x || !Array.isArray(x.words)) return;
+  const f = { id: "f" + Date.now().toString(36), name: x.name || "Thư viện được chia sẻ", w: x.words.map((w) => ({ ...w })), sn: x.sn || {}, sourceLibraryId: x.id, visibility: "private" };
+  f.sharedLibraryId = x.id;
+  FO.push(f);
+  sv();
+  alert("Đã thêm thư viện vào tài khoản của bạn. Tiến độ học sẽ được lưu riêng.");
+  openF(f.id);
+}
+function fmtDate(x) {
+  const d = x && x.toDate ? x.toDate() : x ? new Date(x) : null;
+  return d && !Number.isNaN(d.getTime()) ? d.toLocaleString("vi-VN") : "vừa xong";
+}
+const notificationSeenKey = (libraryId) => scopedKey("notification_seen_" + libraryId);
+function getSeenNotificationIds(libraryId) {
+  try { return new Set(JSON.parse(localStorage.getItem(notificationSeenKey(libraryId)) || "[]")); }
+  catch (_) { return new Set(); }
+}
+function setSeenNotificationIds(libraryId, ids) {
+  try { localStorage.setItem(notificationSeenKey(libraryId), JSON.stringify([...ids])); }
+  catch (_) {}
+}
+async function refreshLibraryNotifications() {
+  const userId = cloud().user?.uid;
+  if (!userId || !cloud().listComments || !cloud().listReports) return;
+  await Promise.all(FO.filter((f) => f.visibility === "public" && f.libraryId).map(async (f) => {
+    const badge = [...document.querySelectorAll("[data-notifications]")].find((x) => x.dataset.notifications === f.id);
+    if (!badge) return;
+    try {
+      const [comments, reports] = await Promise.all([cloud().listComments(f.libraryId), cloud().listReports(f.libraryId)]);
+      const seen = getSeenNotificationIds(f.libraryId);
+      const newIds = [
+        ...comments.filter((x) => x.authorId !== userId).map((x) => "comment:" + x.id),
+        ...reports.filter((x) => x.reporterId !== userId).map((x) => "report:" + x.id),
+      ];
+      const count = newIds.filter((id) => !seen.has(id)).length;
+      badge.textContent = `🔔 ${count > 99 ? "99+" : count}`;
+      badge.title = `${count} thông báo mới · bấm để xem`;
+      badge.setAttribute("aria-label", badge.title);
+      badge.classList.toggle("hidden", count === 0);
+    } catch (_) { badge.classList.add("hidden"); }
+  }));
+}
+async function community(libraryId, canManage) {
+  const box = $("#community");
+  if (!box || !libraryId || !cloud().listComments) return;
+  try {
+    const [comments, reports] = await Promise.all([cloud().listComments(libraryId), canManage && cloud().listReports ? cloud().listReports(libraryId) : []]);
+    if (canManage) {
+      const seen = getSeenNotificationIds(libraryId);
+      comments.filter((x) => x.authorId !== cloud().user?.uid).forEach((x) => seen.add("comment:" + x.id));
+      reports.filter((x) => x.reporterId !== cloud().user?.uid).forEach((x) => seen.add("report:" + x.id));
+      setSeenNotificationIds(libraryId, seen);
+    }
+    box.innerHTML = `<h2>Góp ý cộng đồng</h2><div id="commentList">${comments.length ? comments.map((c) => `<div class="comment"><b>${esc(c.authorName || "Người dùng")}</b><small>${fmtDate(c.createdAt)}</small><div>${esc(c.content || "")}</div></div>`).join("") : `<p class="mu">Chưa có comment nào.</p>`}</div><textarea id="commentText" placeholder="Viết comment để mọi người cùng đọc..."></textarea><button class="p" id="commentSend">Gửi comment</button><div class="row" style="margin-top:12px"><select id="reportWord"><option value="">Chọn từ cần báo lỗi</option>${W.map((w) => `<option value="${w.id}">${esc(w.k)}</option>`).join("")}</select><input id="reportText" placeholder="Mô tả lỗi sai" style="flex:1;min-width:180px"><button id="reportSend">Báo lỗi</button></div>${canManage && reports.length ? `<hr><h2>Report cần xử lý</h2>${reports.map((r) => `<div class="comment"><b>${esc(r.reporterName || "Người dùng")}</b> · ${esc(r.status || "open")}<div>${esc(r.content || "")}</div><button data-resolve-report="${r.id}">Đánh dấu đã xử lý</button></div>`).join("")}` : ""}`;
+    $("#commentSend").onclick = async () => { const content = $("#commentText").value.trim(); if (!content) return; await cloud().addComment(libraryId, { content }); community(libraryId, canManage); };
+    $("#reportSend").onclick = async () => { const wordId = $("#reportWord").value, content = $("#reportText").value.trim(); if (!wordId || !content) return alert("Hãy chọn từ và nhập nội dung báo lỗi."); await cloud().addReport(libraryId, { wordId: +wordId, content }); alert("Đã gửi report cho chủ thư viện."); };
+    box.querySelectorAll("[data-resolve-report]").forEach((b) => b.onclick = async () => { await cloud().updateReport(libraryId, b.dataset.resolveReport, { status: "resolved" }); community(libraryId, canManage); });
+  } catch (e) { box.innerHTML = `<p class="mu">Không tải được phần góp ý.</p>`; }
+}
+async function openSharedLibrary(id) {
+  if (!id || !cloud().getLibrary) return false;
+  try {
+    const x = await cloud().getLibrary(id);
+    if (!x || x.visibility !== "public") { alert("Thư viện này không công khai hoặc không tồn tại."); return false; }
+    SHARED_LIBRARY = x;
+    const words = Array.isArray(x.words) ? x.words : [];
+    $("#app").innerHTML = `${accountBar()}<button id="sharedBack">← Thư viện của tôi</button><h1>${esc(x.name || "Thư viện chia sẻ")}</h1><p class="mu">${esc(x.description || "Thư viện công khai · " + words.length + " từ")}</p><div class="card"><div class="row"><button class="p" id="useShared">Dùng thư viện này</button><span class="mu">Chủ thư viện: ${esc(x.ownerName || "Người dùng")}</span></div></div><div id="community" class="card">Đang tải góp ý...</div>`;
+    const sharedTitle = $("#app h1");
+    if (sharedTitle) {
+      const badge = document.createElement("span");
+      badge.className = "visibility-badge is-public";
+      badge.textContent = "Đang chia sẻ công khai";
+      sharedTitle.appendChild(badge);
+    }
+    $("#sharedBack").onclick = lib; $("#useShared").onclick = copyLibraryFromShared; bindAccount(); community(id, false); return true;
+  } catch (e) { return false; }
+}
 function reopenCards(session, y) {
   openF(FID);
   setTimeout(() => {
@@ -746,10 +947,10 @@ function reopenCards(session, y) {
   }, 0);
 }
 // Hộp xác nhận ngay trong trang: [Huỷ] [Xoá]
-function confirmBox(title, msg, okText, onOk) {
+function confirmBox(title, msg, okText, onOk, variant = "danger") {
   const ov = document.createElement("div");
   ov.className = "modal";
-  ov.innerHTML = `<div class="dlg" role="alertdialog" aria-modal="true"><h2>${esc(title)}</h2><p>${esc(msg)}</p><div class="row"><button id="cfNo">Huỷ</button><button class="danger" id="cfOk">${esc(okText)}</button></div></div>`;
+  ov.innerHTML = `<div class="dlg dlg-${variant === "success" ? "success" : "danger"}" role="alertdialog" aria-modal="true"><h2>${esc(title)}</h2><p>${esc(msg)}</p><div class="row"><button id="cfNo">Huỷ</button><button class="${variant === "success" ? "success" : "danger"}" id="cfOk">${esc(okText)}</button></div></div>`;
   document.body.appendChild(ov);
   const close = () => {
     ov.remove();
@@ -881,7 +1082,7 @@ function renameDeck() {
     openF(FID);
   });
 }
-function openF(id) {
+function openF(id, skipLinkedRefresh = false) {
   FID = id;
   isMimi = id === "mimi";
   if (isMimi) {
@@ -890,6 +1091,17 @@ function openF(id) {
     FN = "Mimikara N3";
   } else {
     const f = FO.find((x) => x.id === id);
+    if (!skipLinkedRefresh && f?.sourceLibraryId && cloud().getLibrary) {
+      cloud().getLibrary(f.sourceLibraryId).then((remote) => {
+        if (remote && remote.visibility === "public" && Array.isArray(remote.words)) {
+          f.w = remote.words.map((w) => ({ ...w }));
+          f.sn = remote.sn || {};
+          f.name = remote.name || f.name;
+          sv();
+          if (FID === id) openF(id, true);
+        }
+      }).catch(() => {});
+    }
     W = f.w.map((x, i) => ({
       s: x.s || 1,
       c: "Từ vựng",
@@ -1104,18 +1316,41 @@ function imp(tid, expanded = false) {
 function lib() {
   Q = null;
   const t = dayNum();
-  const card = (id, name, n, p) => {
+  const card = (id, name, n, p, isPublic = false) => {
     const en = Object.values(p),
       due = en.filter((e) => e[1] <= t).length;
-    return `<div class='card'><div class='row' style='justify-content:space-between'><div><b>${esc(name)}</b><div class='mu'>${n} từ · đã làm ${en.length} · đến hạn ôn ${due}</div></div><button class='p' data-o='${id}'>Mở</button></div></div>`;
+    return `<div class='card library-card${isPublic ? " library-card-public" : ""}'><div class='row' style='justify-content:space-between'><div><b>${esc(name)}</b><div class='mu'>${n} từ · đã làm ${en.length} · đến hạn ôn ${due}</div></div><button class='p' data-o='${id}'>Mở</button></div></div>`;
   };
   $("#app").innerHTML =
-    `${accountBar()}<section class="library-heading"><h1>THƯ VIỆN TỪ VỰNG</h1><div class="mu">Mỗi bộ có tiến độ học riêng, không ảnh hưởng lẫn nhau.</div></section>${card("mimi", "Mimikara N3", MIMI.length, ld("n3vocab_v1") || {})}${FO.map((f) => card(f.id, f.name, f.w.length, ld("n3vocab_p_" + f.id) || {})).join("")}<div class='card' id='imp'></div>`;
+    `${accountBar()}<section class="library-heading"><h1>THƯ VIỆN TỪ VỰNG</h1><div class="mu">Mỗi bộ có tiến độ học riêng, không ảnh hưởng lẫn nhau.</div></section>${card("mimi", "Mimikara N3", MIMI.length, ld("n3vocab_v1") || {})}${FO.map((f) => card(f.id, f.name, f.w.length, ld("n3vocab_p_" + f.id) || {}, f.visibility === "public")).join("")}<div class='card' id='imp'></div>`;
   document
     .querySelectorAll("[data-o]")
-    .forEach((b) => (b.onclick = () => openF(b.dataset.o)));
+    .forEach((b) => {
+      b.onclick = () => openF(b.dataset.o);
+      const f = FO.find((x) => x.id === b.dataset.o);
+      const title = b.closest(".row")?.querySelector("b");
+      if (f && title) {
+        const badge = document.createElement("span");
+        badge.className = `visibility-badge ${f.visibility === "public" ? "is-public" : "is-private"}`;
+        badge.textContent = f.visibility === "public" ? "Công khai" : "Không công khai";
+        title.insertAdjacentElement("afterend", badge);
+        if (f.visibility === "public" && f.libraryId && cloud().user?.uid) {
+          const notify = document.createElement("button");
+          notify.type = "button";
+          notify.className = "notification-badge hidden";
+          notify.dataset.notifications = f.id;
+          notify.textContent = "🔔 0";
+          notify.onclick = () => {
+            openF(f.id);
+            setTimeout(() => $("#community")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+          };
+          b.parentNode?.insertBefore(notify, b);
+        }
+      }
+    });
   bindAccount();
   imp();
+  refreshLibraryNotifications();
 }
 function clearGuestData(backup) {
   try {
@@ -1160,8 +1395,10 @@ window.onCloudInitialData = async (data) => {
     console.error("Không thể chuyển dữ liệu local lên cloud", e);
   }
 };
-window.onCloudAuthChanged = (user) => {
+window.onCloudAuthChanged = async (user) => {
   if (Q) return;
+  const sharedId = new URLSearchParams(location.search).get("library");
+  if (user && sharedId && await openSharedLibrary(sharedId)) return;
   if (user || OFFLINE_MODE || !(window.cloudSync || {}).configured) lib();
   else loginScreen();
 };

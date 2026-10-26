@@ -4,5 +4,28 @@ service cloud.firestore {
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
+    match /libraries/{libraryId} {
+      allow read: if resource.data.visibility == 'public'
+                  || (request.auth != null && (request.auth.uid == resource.data.ownerId || request.auth.uid in resource.data.editors));
+      allow create: if request.auth != null && request.resource.data.ownerId == request.auth.uid;
+      allow update, delete: if request.auth != null
+                            && (request.auth.uid == resource.data.ownerId || request.auth.uid in resource.data.editors);
+      match /comments/{commentId} {
+        allow read: if get(/databases/$(database)/documents/libraries/$(libraryId)).data.visibility == 'public';
+        allow create: if request.auth != null
+                      && get(/databases/$(database)/documents/libraries/$(libraryId)).data.visibility == 'public';
+        allow update, delete: if request.auth != null
+                              && (request.auth.uid == get(/databases/$(database)/documents/libraries/$(libraryId)).data.ownerId
+                              || request.auth.uid in get(/databases/$(database)/documents/libraries/$(libraryId)).data.editors);
+      }
+      match /reports/{reportId} {
+        allow create: if request.auth != null
+                      && get(/databases/$(database)/documents/libraries/$(libraryId)).data.visibility == 'public';
+        allow read, update, delete: if request.auth != null
+                                    && (request.auth.uid == get(/databases/$(database)/documents/libraries/$(libraryId)).data.ownerId
+                                    || request.auth.uid in get(/databases/$(database)/documents/libraries/$(libraryId)).data.editors
+                                    || request.auth.uid == resource.data.reporterId);
+      }
+    }
   }
 }
